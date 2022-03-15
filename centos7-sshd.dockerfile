@@ -9,6 +9,11 @@ EXPOSE 22
 RUN yum search sshd
 RUN yum install -y openssh-server
 RUN rpm -q --list openssh-server
+RUN ssh-keygen -A
+RUN mkdir /root/.ssh
+COPY files/ssh/docker_ed25519.pub /root/.ssh/authorized_keys
+RUN chmod -R 0700 /root/.ssh/
+
 COPY files/docker/systemctl.py /usr/bin/systemctl
 RUN : \
   ; mkdir /etc/systemd/system/sshd-keygen.service.d \
@@ -23,3 +28,4 @@ RUN useradd -g nobody testuser
 RUN echo $PASSWORD | passwd --stdin testuser
 RUN TZ=UTC date -I > /home/testuser/date.txt
 CMD /usr/bin/systemctl
+ENTRYPOINT /usr/bin/systemctl start sshd && /bin/bash
